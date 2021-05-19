@@ -45,7 +45,8 @@ const theme = createMuiTheme({
 const useStyles = makeStyles((theme) => ({
     box: {
         backgroundColor: theme.palette.background.default,
-        minHeight: '100vh'  // 100% da altura da área visível
+        minHeight: '100vh',  // 100% da altura da área visível
+        paddingBottom: '42px'
     },
     routed: {
         padding: '25px',

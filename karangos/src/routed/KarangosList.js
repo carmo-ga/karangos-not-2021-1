@@ -16,7 +16,10 @@ import EditIcon from '@material-ui/icons/Edit';
 import Toolbar from '@material-ui/core/Toolbar'
 import Button from '@material-ui/core/Button'
 import AddBoxIcon from '@material-ui/icons/AddBox';
-import { useHistory } from 'react-router-dom'
+import { useHistory } from 'react-router-dom';
+import ConfirmDialog from '../ui/ConfirmDialog';
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
 
 const useStyles = makeStyles((theme) => ({
     table: {
@@ -46,24 +49,76 @@ export default function KarangosList() {
 
     // É importante inicializar esta variável de estado como um vetor vazio
     const [karangos, setKarangos] = useState([])
+    const [dialogOpen, SetDialogOpen] = useState(false)
+    const [deletable, setDeletable] = useState()  // Código do registro a ser excluído
+    const [snackState, setSnackState] = useState({
+        open: false,
+        severity: 'success',
+        message: 'Karango excluído com sucesso'
+    })
+
+    function handleDialogClose(result) {
+        SetDialogOpen(false)
+        if(result) deleteItem()
+    }
+
+    function handleDeleteClick(id) {
+        setDeletable(id)
+        SetDialogOpen(true)
+    }
+
+    async function deleteItem() {
+        try {
+            await axios.delete(`https://api.faustocintra.com.br/karangos/${deletable}`)
+            getData()   // Atualiza os dados da tabela
+            setSnackState({...snackState, open: true})  // Exibe a snackbar de sucesso
+        }
+        catch(error) {
+            // Mostra a snackbar de erro
+            setSnackState({
+                open: true,
+                severity: 'error',
+                message: 'ERRO: ' + error.message
+            })
+        }
+    }
+
+    async function getData() {
+        try {
+            let response = await axios.get('https://api.faustocintra.com.br/karangos?by=marca,modelo')
+            if(response.data.length > 0) setKarangos(response.data)
+        }
+        catch(error) {
+            console.log(error)
+        }
+    }
 
     useEffect(() => {
-        const getData = async () => {
-            try {
-                let response = await axios.get('https://api.faustocintra.com.br/karangos?by=marca,modelo')
-                setKarangos(response.data)
-            }
-            catch(error) {
-                console.log(error)
-            }
-        }
-
         getData()
-
     }, [])  // Quando a dependência de um useEffect é um vetor vazio, isso indica que ele será executado apenas uma vez, na inicialização do componente
+
+    function Alert(props) {
+        return <MuiAlert elevation={6} variant="filled" {...props} />;
+    }
+
+    function handleSnackClose(event, reason) {
+        // Evita que a snackbar seja fechada clicando-se fora dela
+        if(reason === 'clickaway') return
+        setSnackState({...snackState, open: false})  // Fecha a snackbar
+    }
 
     return (
         <>
+            <ConfirmDialog isOpen={dialogOpen} onClose={handleDialogClose}>
+                Deseja realmente excluir este karango?
+            </ConfirmDialog>
+
+            <Snackbar open={snackState.open} autoHideDuration={6000} onClose={handleSnackClose}>
+                <Alert onClose={handleSnackClose} severity={snackState.severity}>
+                    {snackState.message}
+                </Alert>
+            </Snackbar>
+
             <h1>Listagem de Karangos</h1>
             <Toolbar className={classes.toolbar}>
                 <Button color="secondary" variant="contained" size="large" startIcon={<AddBoxIcon />} onClick={ () => history.push("/new") }>Novo Karango</Button>
@@ -107,7 +162,7 @@ export default function KarangosList() {
                                         </IconButton>
                                     </TableCell>
                                     <TableCell aling="center">
-                                        <IconButton aria-label="delete">
+                                        <IconButton aria-label="delete" onClick={() => handleDeleteClick(karango.id)}>
                                             <DeleteIcon color="error" />
                                         </IconButton>
                                     </TableCell>
