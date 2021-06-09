@@ -74,7 +74,7 @@ export default function KarangosForm() {
         placa: '',
         preco: 0
     })
-    const [currentId, setCurrentId] = useState()
+    
     const [importadoChecked, setImportadoChecked] = useState()
 
     const [snackState, setSnackState] = useState({
@@ -115,7 +115,7 @@ export default function KarangosForm() {
 
     async function getData(id) {
         try {
-            let response = await axios.get(`http://api.faustocintra.com.br/karangos/${id}`)
+            let response = await axios.get(`https://api.faustocintra.com.br/karangos/${id}`)
             setKarango(response.data)
         }
         catch(error) {
@@ -280,14 +280,14 @@ export default function KarangosForm() {
                 Há dados não salvos. Deseja realmente voltar?
             </ConfirmDialog>
 
-            <Snackbar open={snackState.open} autoHideDuration={6000} onClose={handleSnackClose}>
+            <Snackbar open={snackState.open} autoHideDuration={5000} onClose={handleSnackClose}>
                 <Alert onClose={handleSnackClose} severity={snackState.severity}>
                     {snackState.message}
                 </Alert>
             </Snackbar>
 
             <h1>{title}</h1>
-            <form className={classes.form}>
+            <form className={classes.form} onSubmit={handleSubmit}>
                 <TextField
                     id="marca"
                     label="Marca"
@@ -401,7 +401,7 @@ export default function KarangosForm() {
                 </Toolbar>
 
 
-                <div>{JSON.stringify(karango)}<br/>currentId: {currentId}</div>
+                {/* <div>{JSON.stringify(karango)}<br/></div> */}
             </form>
         </>
     )
